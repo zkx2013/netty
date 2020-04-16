@@ -67,7 +67,7 @@ public abstract class AbstractTrafficShapingHandler extends ChannelDuplexHandler
     static final long DEFAULT_MAX_SIZE = 4 * 1024 * 1024L;
 
     /**
-     * Default minimal time to wait
+     * Default minimal time to wait: 10ms
      */
     static final long MINIMAL_WAIT = 10;
 
@@ -510,6 +510,16 @@ public abstract class AbstractTrafficShapingHandler extends ChannelDuplexHandler
         }
         informReadOperation(ctx, now);
         ctx.fireChannelRead(msg);
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        Channel channel = ctx.channel();
+        if (channel.hasAttr(REOPEN_TASK)) {
+            //release the reopen task
+            channel.attr(REOPEN_TASK).set(null);
+        }
+        super.handlerRemoved(ctx);
     }
 
     /**
